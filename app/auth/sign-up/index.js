@@ -1,25 +1,52 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useEffect } from 'react'
-import { useNavigation, useRouter } from 'expo-router'
-import { Colors } from './../../../constants/Colors'
+import { StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useNavigation, useRouter } from 'expo-router';
+import { Colors } from './../../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import { auth } from '../../../configs/FirebaseConfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';  // Import the function
 
 export default function SignUp() {
   const navigation = useNavigation();
   const router = useRouter();
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+
   useEffect(() => {
     navigation.setOptions({
       headerShown: false
-    })
-  }, [])
+    });
+  }, []);
+
+  const OnCreateAccount = () => {
+    if (!email || !password || !fullName) {
+      ToastAndroid.show('Please enter all details', ToastAndroid.LONG);
+      return;
+    }
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed up 
+        const user = userCredential.user;
+        console.log(user);
+        // ...
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorMessage, errorCode);
+        // ...
+      });
+  };
+
   return (
     <View
       style={{
         padding: 25,
-        padddingTop: 40,
+        paddingTop: 40,
         marginTop: 30,
-        backgrooundColor: Colors.WHITE,
+        backgroundColor: Colors.WHITE,
         height: '100%'
       }}>
 
@@ -43,7 +70,9 @@ export default function SignUp() {
         }}>Full Name</Text>
         <TextInput
           style={styles.input}
-          placeholder='Enter Full Name' />
+          placeholder='Enter Full Name'
+          onChangeText={(value) => setFullName(value)}
+        />
       </View>
 
       {/* Email */}
@@ -55,7 +84,9 @@ export default function SignUp() {
         }}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder='Enter email' />
+          onChangeText={(value) => setEmail(value)}
+          placeholder='Enter email'
+        />
       </View>
 
       {/* password */}
@@ -68,21 +99,26 @@ export default function SignUp() {
         <TextInput
           secureTextEntry={true}
           style={styles.input}
-          placeholder='Enter password' />
+          onChangeText={(value) => setPassword(value)}
+          placeholder='Enter password'
+        />
       </View>
 
-      {/* Sign In BUtton */}
-      <View style={{
-        padding: 20,
-        backgroundColor: Colors.PRIMARY,
-        borderRadius: 15,
-        marginTop: 50
-      }}>
+      {/* Sign In Button */}
+      <TouchableOpacity
+        onPress={OnCreateAccount}
+        style={{
+          padding: 20,
+          backgroundColor: Colors.PRIMARY,
+          borderRadius: 15,
+          marginTop: 50
+        }}>
         <Text style={{
           color: Colors.WHITE,
           textAlign: 'center'
         }}>Create Account</Text>
-      </View>
+      </TouchableOpacity>
+
       {/* Create account button*/}
       <TouchableOpacity
         onPress={() => router.replace('auth/sign-in')}
@@ -100,7 +136,7 @@ export default function SignUp() {
       </TouchableOpacity>
 
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -111,4 +147,4 @@ const styles = StyleSheet.create({
     borderColor: Colors.GRAY,
     fontFamily: 'outfit'
   }
-})
+});
